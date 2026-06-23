@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="MediScan AI — AI-powered health diagnostic tool that analyzes your symptoms and images to identify potential health conditions. Get instant preliminary insights." />
+  <title>MediScan AI — Intelligent Health Diagnostics</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>" />
+</head>
+<body>
+  <!-- Background Effects -->
+  <div class="bg-effects">
+    <canvas id="particleCanvas"></canvas>
+    <div class="bg-orb bg-orb--1"></div>
+    <div class="bg-orb bg-orb--2"></div>
+    <div class="bg-orb bg-orb--3"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Navigation -->
+    <nav class="nav" id="navbar">
+      <a href="#" class="nav__logo" onclick="resetApp(); return false;">
+        <div class="nav__logo-icon">🧬</div>
+        <span class="nav__logo-text">MediScan AI</span>
+      </a>
+      <span class="nav__badge">Beta v2.0</span>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="heroSection">
+      <div class="hero__badge">
+        <span class="hero__badge-dot"></span>
+        AI Engine Online
+      </div>
+      <h1 class="hero__title">
+        Your Health,<br />
+        <span class="hero__title-gradient">Analyzed by AI</span>
+      </h1>
+      <p class="hero__subtitle">
+        Answer a few questions and optionally upload images. Our AI engine cross-references thousands of medical conditions to provide preliminary insights.
+      </p>
+      <button class="hero__cta" id="startDiagnosisBtn" onclick="startDiagnosis()" disabled>
+        Start Diagnosis →
+      </button>
+      <div class="consent-container">
+        <label class="consent-checkbox-label">
+          <input type="checkbox" id="disclaimerConsent" onchange="toggleConsent(this.checked)" />
+          I understand and agree to the <a href="#" onclick="openModal('disclaimerModal'); return false;">Medical Disclaimer</a> and <a href="#" onclick="openModal('privacyModal'); return false;">Privacy Policy</a>.
+        </label>
+      </div>
+      <div class="hero__features">
+        <div class="hero__feature">
+          <div class="hero__feature-icon">🔬</div>
+          <span>500+ Conditions</span>
+        </div>
+        <div class="hero__feature">
+          <div class="hero__feature-icon">📷</div>
+          <span>Image Analysis</span>
+        </div>
+        <div class="hero__feature">
+          <div class="hero__feature-icon">⚡</div>
+          <span>Instant Results</span>
+        </div>
+        <div class="hero__feature">
+          <div class="hero__feature-icon">🔒</div>
+          <span>100% Private</span>
+        </div>
+      </div>
+      <div class="trust-badges">
+        <div class="trust-badge">
+          <span class="trust-badge__icon">🔒</span>
+          <div class="trust-badge__content">
+            <span class="trust-badge__title">HIPAA Structure</span>
+            <span class="trust-badge__desc">100% on-device processing</span>
+          </div>
+        </div>
+        <div class="trust-badge">
+          <span class="trust-badge__icon">🩺</span>
+          <div class="trust-badge__content">
+            <span class="trust-badge__title">Evidence-Based</span>
+            <span class="trust-badge__desc">Curated medical database</span>
+          </div>
+        </div>
+        <div class="trust-badge">
+          <span class="trust-badge__icon">🛡️</span>
+          <div class="trust-badge__content">
+            <span class="trust-badge__title">Privacy Sealed</span>
+            <span class="trust-badge__desc">No data sent to servers</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- History Section (Returning Users) -->
+    <section class="history-section" id="historySection" style="display: none;">
+      <div class="history-section__header">
+        <div class="history-section__icon">🕒</div>
+        <div>
+          <h2 class="history-section__title">Recent Diagnostics</h2>
+          <p class="history-section__subtitle">Review your previous health reports or use them to start a new check</p>
+        </div>
+        <button class="history-section__clear" onclick="clearHistory()">Clear All</button>
+      </div>
+      <div class="history-grid" id="historyGrid"></div>
+    </section>
+
+    <!-- Disease Encyclopedia -->
+    <section class="encyclopedia" id="encyclopediaSection">
+      <div class="encyclopedia__header">
+        <div class="encyclopedia__icon">📚</div>
+        <div>
+          <h2 class="encyclopedia__title">Condition Encyclopedia</h2>
+          <p class="encyclopedia__subtitle">Browse descriptions, symptoms, and medical recommendations</p>
+        </div>
+      </div>
+      <div class="encyclopedia__search">
+        <span class="encyclopedia__search-icon">🔍</span>
+        <input type="text" class="encyclopedia__search-input" id="encyclopediaSearch" placeholder="Search conditions, symptoms, or keywords..." oninput="filterEncyclopedia()" />
+      </div>
+      <div class="encyclopedia__categories" id="encyclopediaCategories"></div>
+      <div class="encyclopedia__grid" id="encyclopediaGrid"></div>
+    </section>
+
+    <!-- Emergency Care Warning Section -->
+    <section class="emergency-alert" id="emergencySection">
+      <div class="emergency-alert__glow"></div>
+      <div class="emergency-alert__content">
+        <div class="emergency-alert__header">
+          <span class="emergency-alert__icon">🚨</span>
+          <h2 class="emergency-alert__title">When to Seek Emergency Care</h2>
+        </div>
+        <p class="emergency-alert__subtitle">
+          MediScan AI is designed for informational purposes only. Do NOT use this tool if you are experiencing a life-threatening medical emergency.
+        </p>
+        <p class="emergency-alert__text">
+          If you or someone else is experiencing any of the following symptoms, please call emergency services (e.g. 911 or your local emergency number) or go to the nearest emergency room immediately:
+        </p>
+        <ul class="emergency-alert__list">
+          <li><strong>Severe chest pain</strong> or pressure, radiating to arm/jaw</li>
+          <li><strong>Severe difficulty breathing</strong> or sudden shortness of breath</li>
+          <li><strong>Loss of consciousness</strong>, fainting, or severe confusion</li>
+          <li><strong>Signs of stroke</strong> (face drooping, arm weakness, speech difficulty)</li>
+          <li><strong>Severe bleeding</strong> or coughing up blood</li>
+          <li><strong>Pale, gray, or blue skin</strong>, lips, or nail beds</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- FAQ Accordion Section -->
+    <section class="faq-section" id="faqSection">
+      <div class="faq-section__header">
+        <div class="faq-section__icon">❓</div>
+        <div>
+          <h2 class="faq-section__title">Frequently Asked Questions</h2>
+          <p class="faq-section__subtitle">Everything you need to know about MediScan AI's privacy, security, and accuracy.</p>
+        </div>
+      </div>
+      <div class="faq-grid">
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-item__question">
+            <span>How does MediScan AI analyze symptoms?</span>
+            <span class="faq-item__toggle">▼</span>
+          </div>
+          <div class="faq-item__answer">
+            <p>MediScan AI takes your reported symptoms, affected body areas, duration, and severity, then runs a weighted scoring algorithm to match your inputs against our curated database of common medical conditions. The results show a differential match percentage based on symptom alignment.</p>
+          </div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-item__question">
+            <span>Is my health data private and secure?</span>
+            <span class="faq-item__toggle">▼</span>
+          </div>
+          <div class="faq-item__answer">
+            <p>Yes. MediScan AI is built on a privacy-first sandbox architecture. All operations (symptom processing, diagnostic matching, and image preview analysis) happen <strong>entirely on your local browser</strong>. No medical data, patient info, or photos are ever sent to external servers, making it structure-compliant with standard data privacy regulations.</p>
+          </div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-item__question">
+            <span>Can this tool diagnose disease?</span>
+            <span class="faq-item__toggle">▼</span>
+          </div>
+          <div class="faq-item__answer">
+            <p>No. This tool is designed for educational purposes only. It is not a clinical diagnosis or medical advice. You should always consult a licensed healthcare professional for official diagnosis, treatment, and medical advice.</p>
+          </div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-item__question">
+            <span>Can I share the generated reports?</span>
+            <span class="faq-item__toggle">▼</span>
+          </div>
+          <div class="faq-item__answer">
+            <p>Yes. You can print the report or download it as a text file directly from the Results screen. This can serve as a detailed summary of symptoms to present during your consultation with a doctor.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Diagnostic Section -->
+    <section class="diagnostic" id="diagnosticSection">
+      <!-- Progress -->
+      <div class="progress" id="progressBar">
+        <div class="progress__steps">
+          <div class="progress__step">
+            <div class="progress__step-circle active" id="step1Circle">1</div>
+          </div>
+          <div class="progress__step">
+            <div class="progress__step-line" id="line1"></div>
+            <div class="progress__step-circle" id="step2Circle">2</div>
+          </div>
+          <div class="progress__step">
+            <div class="progress__step-line" id="line2"></div>
+            <div class="progress__step-circle" id="step3Circle">3</div>
+          </div>
+          <div class="progress__step">
+            <div class="progress__step-line" id="line3"></div>
+            <div class="progress__step-circle" id="step4Circle">4</div>
+          </div>
+          <div class="progress__step">
+            <div class="progress__step-line" id="line4"></div>
+            <div class="progress__step-circle" id="step5Circle">5</div>
+          </div>
+        </div>
+        <div class="progress__label" id="progressLabel">Patient Information</div>
+      </div>
+
+      <!-- Step 1: Patient Info -->
+      <div class="card" id="step1" style="display: block;">
+        <div class="card__header">
+          <div class="card__icon">👤</div>
+          <div>
+            <h2 class="card__title">Patient Information</h2>
+            <p class="card__description">Help us personalize the analysis</p>
+          </div>
+        </div>
+
+        <div class="ai-message">
+          <div class="ai-message__avatar">🤖</div>
+          <div class="ai-message__content">
+            <div class="ai-message__name">MediScan AI</div>
+            <p class="ai-message__text">Hello! I'm your AI health assistant. Let's start by learning a bit about you so I can provide more accurate insights.</p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="patientName">Full Name</label>
+            <input type="text" class="form-input" id="patientName" placeholder="Enter your name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="patientAge">Age</label>
+            <input type="number" class="form-input" id="patientAge" placeholder="e.g. 28" min="1" max="120" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="patientGender">Gender</label>
+            <select class="form-select" id="patientGender">
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="patientWeight">Weight (kg)</label>
+            <input type="number" class="form-input" id="patientWeight" placeholder="e.g. 70" min="1" max="500" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="medicalHistory">Any known medical conditions or allergies?</label>
+          <textarea class="form-textarea" id="medicalHistory" placeholder="e.g. Diabetes, High Blood Pressure, Penicillin allergy..." rows="3"></textarea>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn--primary btn--large" onclick="goToStep(2)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Body Area -->
+      <div class="card" id="step2" style="display: none;">
+        <div class="card__header">
+          <div class="card__icon">🫀</div>
+          <div>
+            <h2 class="card__title">Affected Area</h2>
+            <p class="card__description">Where are you experiencing discomfort?</p>
+          </div>
+        </div>
+
+        <div class="ai-message">
+          <div class="ai-message__avatar">🤖</div>
+          <div class="ai-message__content">
+            <div class="ai-message__name">MediScan AI</div>
+            <p class="ai-message__text">Select all body areas where you're experiencing symptoms. This helps me narrow down the potential conditions.</p>
+          </div>
+        </div>
+
+        <div class="body-areas" id="bodyAreas">
+          <div class="body-area" data-area="head" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">🧠</div>
+            <div class="body-area__label">Head</div>
+          </div>
+          <div class="body-area" data-area="eyes" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">👁️</div>
+            <div class="body-area__label">Eyes</div>
+          </div>
+          <div class="body-area" data-area="ears" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">👂</div>
+            <div class="body-area__label">Ears</div>
+          </div>
+          <div class="body-area" data-area="nose-throat" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">👃</div>
+            <div class="body-area__label">Nose / Throat</div>
+          </div>
+          <div class="body-area" data-area="chest" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">🫁</div>
+            <div class="body-area__label">Chest</div>
+          </div>
+          <div class="body-area" data-area="abdomen" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">🫃</div>
+            <div class="body-area__label">Abdomen</div>
+          </div>
+          <div class="body-area" data-area="skin" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">🖐️</div>
+            <div class="body-area__label">Skin</div>
+          </div>
+          <div class="body-area" data-area="joints" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">🦴</div>
+            <div class="body-area__label">Joints / Bones</div>
+          </div>
+          <div class="body-area" data-area="back" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">🔙</div>
+            <div class="body-area__label">Back</div>
+          </div>
+          <div class="body-area" data-area="legs" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">🦵</div>
+            <div class="body-area__label">Legs / Feet</div>
+          </div>
+          <div class="body-area" data-area="general" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">🌡️</div>
+            <div class="body-area__label">General / Whole Body</div>
+          </div>
+          <div class="body-area" data-area="mental" onclick="toggleBodyArea(this)">
+            <div class="body-area__icon">🧘</div>
+            <div class="body-area__label">Mental Health</div>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn--secondary" onclick="goToStep(1)">← Back</button>
+          <button class="btn btn--primary btn--large" onclick="goToStep(3)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Symptoms -->
+      <div class="card" id="step3" style="display: none;">
+        <div class="card__header">
+          <div class="card__icon">🔍</div>
+          <div>
+            <h2 class="card__title">Select Symptoms</h2>
+            <p class="card__description">Choose all symptoms you're experiencing</p>
+          </div>
+        </div>
+
+        <div class="ai-message">
+          <div class="ai-message__avatar">🤖</div>
+          <div class="ai-message__content">
+            <div class="ai-message__name">MediScan AI</div>
+            <p class="ai-message__text">Based on the areas you selected, here are relevant symptoms. Select everything that applies — the more detail, the better my analysis.</p>
+          </div>
+        </div>
+
+        <div id="symptomsList"></div>
+
+        <div class="form-group" style="margin-top: var(--space-lg);">
+          <label class="form-label" for="additionalSymptoms">Any additional symptoms not listed above?</label>
+          <textarea class="form-textarea" id="additionalSymptoms" placeholder="Describe any other symptoms you're experiencing..." rows="3"></textarea>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn--secondary" onclick="goToStep(2)">← Back</button>
+          <button class="btn btn--primary btn--large" onclick="goToStep(4)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Details -->
+      <div class="card" id="step4" style="display: none;">
+        <div class="card__header">
+          <div class="card__icon">📋</div>
+          <div>
+            <h2 class="card__title">Symptom Details</h2>
+            <p class="card__description">Help us understand severity and duration</p>
+          </div>
+        </div>
+
+        <div class="ai-message">
+          <div class="ai-message__avatar">🤖</div>
+          <div class="ai-message__content">
+            <div class="ai-message__name">MediScan AI</div>
+            <p class="ai-message__text">Almost there! Let me know how long you've been experiencing these symptoms and how severe they are.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">How long have you had these symptoms?</label>
+          <div class="duration-options" id="durationOptions">
+            <div class="duration-option" data-duration="today" onclick="selectDuration(this)">Just today</div>
+            <div class="duration-option" data-duration="2-3days" onclick="selectDuration(this)">2–3 days</div>
+            <div class="duration-option" data-duration="1week" onclick="selectDuration(this)">About a week</div>
+            <div class="duration-option" data-duration="2weeks" onclick="selectDuration(this)">2 weeks</div>
+            <div class="duration-option" data-duration="1month" onclick="selectDuration(this)">~1 month</div>
+            <div class="duration-option" data-duration="months" onclick="selectDuration(this)">Several months</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Severity Level: <span id="severityValue" style="color: var(--accent-primary-light);">5 — Moderate</span></label>
+          <input type="range" id="severitySlider" min="1" max="10" value="5" oninput="updateSeverity(this.value)" />
+          <div class="severity-labels">
+            <span class="severity-label">Mild</span>
+            <span class="severity-label">Moderate</span>
+            <span class="severity-label">Severe</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="symptomNotes">Any other details? (triggers, patterns, relief methods)</label>
+          <textarea class="form-textarea" id="symptomNotes" placeholder="e.g. Symptoms worsen at night, relieved by rest, started after a trip..." rows="3"></textarea>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn--secondary" onclick="goToStep(3)">← Back</button>
+          <button class="btn btn--primary btn--large" onclick="goToStep(5)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 5: Image Upload -->
+      <div class="card" id="step5" style="display: none;">
+        <div class="card__header">
+          <div class="card__icon">📸</div>
+          <div>
+            <h2 class="card__title">Upload Images</h2>
+            <p class="card__description">Optional — upload photos of affected areas</p>
+          </div>
+        </div>
+
+        <div class="ai-message">
+          <div class="ai-message__avatar">🤖</div>
+          <div class="ai-message__content">
+            <div class="ai-message__name">MediScan AI</div>
+            <p class="ai-message__text">If you have any photos of skin rashes, swelling, injuries, or other visible symptoms — upload them here. This step is optional but can improve analysis accuracy.</p>
+          </div>
+        </div>
+
+        <div class="upload-zone" id="uploadZone">
+          <input type="file" id="imageUpload" accept="image/*" multiple onchange="handleImageUpload(event)" />
+          <div class="upload-zone__icon">📁</div>
+          <div class="upload-zone__title">
+            Drag & drop images here, or <span class="upload-zone__browse">browse files</span>
+          </div>
+          <div class="upload-zone__subtitle">Supports PNG, JPG, WEBP — Max 10MB each</div>
+        </div>
+
+        <div class="upload-previews" id="uploadPreviews"></div>
+
+        <div class="btn-group">
+          <button class="btn btn--secondary" onclick="goToStep(4)">← Back</button>
+          <button class="btn btn--primary btn--large" id="analyzeBtn" onclick="startAnalysis()">🔬 Analyze with AI</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analysis Screen -->
+    <section class="analysis" id="analysisSection">
+      <div class="analysis__brain">
+        <div class="analysis__brain-ring"></div>
+        <div class="analysis__brain-ring"></div>
+        <div class="analysis__brain-ring"></div>
+        <div class="analysis__brain-core">🧬</div>
+      </div>
+      <h2 class="analysis__title">Analyzing Your Data</h2>
+      <p class="analysis__status" id="analysisStatus">Initializing AI engine...</p>
+      <div class="analysis__progress-bar">
+        <div class="analysis__progress-fill" id="analysisProgressFill"></div>
+      </div>
+      <div class="analysis__steps">
+        <div class="analysis__step" id="analysisStep1">
+          <div class="analysis__step-icon">⏳</div>
+          <span>Processing patient information</span>
+        </div>
+        <div class="analysis__step" id="analysisStep2">
+          <div class="analysis__step-icon">⏳</div>
+          <span>Cross-referencing symptom database</span>
+        </div>
+        <div class="analysis__step" id="analysisStep3">
+          <div class="analysis__step-icon">⏳</div>
+          <span>Analyzing uploaded images</span>
+        </div>
+        <div class="analysis__step" id="analysisStep4">
+          <div class="analysis__step-icon">⏳</div>
+          <span>Generating differential diagnosis</span>
+        </div>
+        <div class="analysis__step" id="analysisStep5">
+          <div class="analysis__step-icon">⏳</div>
+          <span>Compiling recommendations</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results" id="resultsSection">
+      <div class="results__header">
+        <h2 class="results__title">🧬 Diagnostic Results</h2>
+        <p class="results__subtitle">Here's what our AI analysis found based on your symptoms and data.</p>
+      </div>
+
+      <div class="disclaimer">
+        <span class="disclaimer__icon">⚠️</span>
+        <div>
+          <strong>Medical Disclaimer:</strong> This AI analysis is for informational purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional for proper diagnosis and treatment.
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="card" style="margin-bottom: var(--space-lg);">
+        <div class="card__header">
+          <div class="card__icon">📊</div>
+          <div>
+            <h3 class="card__title">Patient Summary</h3>
+            <p class="card__description">Overview of submitted data</p>
+          </div>
+        </div>
+        <div class="summary-grid" id="summaryGrid"></div>
+      </div>
+
+      <!-- Conditions -->
+      <div id="conditionsList"></div>
+
+      <div class="results__actions">
+        <button class="btn btn--primary" onclick="resetApp()">🔄 New Diagnosis</button>
+        <button class="btn btn--secondary" onclick="printResults()">🖨️ Print Report</button>
+        <button class="btn btn--secondary" onclick="downloadReport()">📥 Download PDF</button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>MediScan AI © 2026 — AI-powered health insights. Not a substitute for professional medical care.</p>
+      <p style="margin-top: 4px;">Built with ❤️ for better health awareness.</p>
+    </footer>
+  </div>
+
+  <!-- Disease Detail Modal -->
+  <div class="modal-overlay" id="diseaseModal" onclick="closeDiseaseModal(event)">
+    <div class="modal">
+      <button class="modal__close" onclick="closeDiseaseModalDirect()">✕</button>
+      <div class="modal__severity-bar" id="modalSeverityBar"></div>
+      <h2 class="modal__title" id="modalTitle">Condition Name</h2>
+      <p class="modal__category" id="modalCategory">Category</p>
+      
+      <div class="modal__section">
+        <div class="modal__section-title">Description</div>
+        <p class="modal__text" id="modalDescription">Description goes here...</p>
+      </div>
+
+      <div class="modal__section">
+        <div class="modal__section-title">Common Symptoms</div>
+        <ul class="modal__list" id="modalSymptoms"></ul>
+      </div>
+
+      <div class="modal__section">
+        <div class="modal__section-title">Care & Recommendation</div>
+        <p class="modal__text" id="modalRecommendation">Recommendation goes here...</p>
+      </div>
+
+      <div class="modal__section">
+        <div class="modal__section-title">Affected Areas</div>
+        <div class="modal__tags" id="modalAreas"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Onboarding Wizard Modal -->
+  <div class="modal-overlay" id="onboardingModal">
+    <div class="modal onboarding-card">
+      <div class="onboarding-slides" id="onboardingSlides">
+        <!-- Slide 1 -->
+        <div class="onboarding-slide active" data-slide="0">
+          <div class="onboarding-icon">🔬</div>
+          <h2 class="onboarding-title">Welcome to MediScan AI</h2>
+          <p class="onboarding-text">
+            MediScan AI is an intelligent health diagnostics assistant. It analyzes your symptoms, medical history, and optional photos to provide evidence-based preliminary insights.
+          </p>
+          <div class="onboarding-highlight">
+            🛡️ <strong>100% Privacy Sealed:</strong> All analysis runs locally on your browser. Your data never leaves your device.
+          </div>
+        </div>
+        <!-- Slide 2 -->
+        <div class="onboarding-slide" data-slide="1">
+          <div class="onboarding-icon">📋</div>
+          <h2 class="onboarding-title">How It Works</h2>
+          <p class="onboarding-text">
+            Get differential diagnostic reports in 3 simple steps:
+          </p>
+          <ul class="onboarding-list">
+            <li><strong>1. Enter Info:</strong> Answer details about age, weight, and history.</li>
+            <li><strong>2. Select Symptoms:</strong> Pick symptoms by affected body areas.</li>
+            <li><strong>3. Upload Photos (Optional):</strong> Add images of rashes or swellings for reference.</li>
+          </ul>
+        </div>
+        <!-- Slide 3 -->
+        <div class="onboarding-slide" data-slide="2">
+          <div class="onboarding-icon">⚠️</div>
+          <h2 class="onboarding-title">Important Safety & Consent</h2>
+          <p class="onboarding-text">
+            Please read and agree to proceed:
+          </p>
+          <div class="onboarding-disclaimer-box">
+            <strong>Medical Disclaimer:</strong> This tool is for educational purposes only. It is not clinical medical advice, a formal diagnosis, or treatment. If you are experiencing a life-threatening emergency, call emergency services immediately.
+          </div>
+          <div class="onboarding-consent">
+            <label class="consent-checkbox-label">
+              <input type="checkbox" id="onboardingConsentCheck" onchange="toggleOnboardingAgree(this.checked)" />
+              I understand that this is an educational tool and agree to the Terms, Disclaimer, and Privacy Policy.
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="onboarding-nav">
+        <button class="btn btn--secondary" id="onboardingPrevBtn" onclick="prevOnboarding()" style="visibility: hidden;">← Back</button>
+        <div class="onboarding-dots" id="onboardingDots">
+          <span class="onboarding-dot active" onclick="goOnboardingSlide(0)"></span>
+          <span class="onboarding-dot" onclick="goOnboardingSlide(1)"></span>
+          <span class="onboarding-dot" onclick="goOnboardingSlide(2)"></span>
+        </div>
+        <button class="btn btn--primary" id="onboardingNextBtn" onclick="nextOnboarding()">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Medical Disclaimer Modal -->
+  <div class="modal-overlay" id="disclaimerModal" onclick="closeModalOnOverlay('disclaimerModal', event)">
+    <div class="modal">
+      <button class="modal__close" onclick="closeModalDirect('disclaimerModal')">✕</button>
+      <div class="modal__severity-bar high"></div>
+      <h2 class="modal__title">⚠️ Medical Disclaimer</h2>
+      <p class="modal__category">MediScan AI Rules of Use</p>
+      <div class="modal__section">
+        <p class="modal__text" style="margin-bottom: var(--space-md);">
+          <strong>1. Not Medical Advice:</strong> All content, results, and recommendations provided by MediScan AI are for informational and educational purposes only. They do not constitute professional medical advice, medical diagnosis, or clinical treatment plans.
+        </p>
+        <p class="modal__text" style="margin-bottom: var(--space-md);">
+          <strong>2. Consult a Doctor:</strong> Always seek the advice of your physician or other qualified healthcare providers with any questions you may have regarding a medical condition. Never disregard professional medical advice or delay seeking it because of something you have read on this website.
+        </p>
+        <p class="modal__text">
+          <strong>3. Emergency Situations:</strong> If you think you may have a medical emergency, call your doctor, go to the nearest emergency department, or call emergency services (e.g. 911) immediately.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Policy Modal -->
+  <div class="modal-overlay" id="privacyModal" onclick="closeModalOnOverlay('privacyModal', event)">
+    <div class="modal">
+      <button class="modal__close" onclick="closeModalDirect('privacyModal')">✕</button>
+      <div class="modal__severity-bar low"></div>
+      <h2 class="modal__title">🔒 Privacy Policy & Data Security</h2>
+      <p class="modal__category">HIPAA & Sandbox Processing Information</p>
+      <div class="modal__section">
+        <p class="modal__text" style="margin-bottom: var(--space-md);">
+          <strong>1. On-Device Local Sandbox:</strong> Your health data is processed entirely in the local memory sandbox of your device's web browser. The app runs completely client-side.
+        </p>
+        <p class="modal__text" style="margin-bottom: var(--space-md);">
+          <strong>2. No Server Transmission:</strong> We do not collect, transmit, store, or sell any information you enter into this app, including your name, weight, age, medical history, symptom selections, or uploaded photos. All image analysis and symptom cross-referencing are executed client-side.
+        </p>
+        <p class="modal__text" style="margin-bottom: var(--space-md);">
+          <strong>3. LocalStorage Persistence:</strong> If you complete an analysis, the report metadata is saved in your browser's local storage (`localStorage`) so you can review your history upon return. You can clear this history at any time by clicking "Clear All" on the landing page, which completely wipes the stored reports.
+        </p>
+        <p class="modal__text">
+          <strong>4. HIPAA Alignment:</strong> Since no Protected Health Information (PHI) is ever transmitted to any server or shared with external parties, the platform matches standard health data privacy guidelines.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="dna-animation.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
