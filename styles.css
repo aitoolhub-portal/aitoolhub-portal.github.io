@@ -1221,8 +1221,54 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+/* ===== Adsterra Ads Styling ===== */
+.ad-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: var(--space-lg) auto;
+  text-align: center;
+  z-index: 10;
+  position: relative;
+  width: 100%;
+}
+
+.ad-skyscraper-right {
+  position: fixed;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  z-index: 100;
+  pointer-events: auto;
+}
+
+.ad-skyscraper-left {
+  position: fixed;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  z-index: 100;
+  pointer-events: auto;
+}
+
+.ad-mobile {
+  display: none;
+}
+
 /* ===== Responsive ===== */
+@media (max-width: 1200px) {
+  .ad-skyscraper-right, .ad-skyscraper-left {
+    display: none; /* Hide skyscraper on smaller screens to prevent overlap */
+  }
+}
+
 @media (max-width: 640px) {
+  .ad-mobile {
+    display: flex;
+  }
+  .ad-desktop-banner {
+    display: none;
+  }
   .app-container { padding: var(--space-md); }
   .form-row { grid-template-columns: 1fr; }
   .hero__features { flex-direction: column; align-items: center; }
